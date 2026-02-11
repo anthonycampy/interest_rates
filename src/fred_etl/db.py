@@ -14,7 +14,7 @@ def get_latest_date(conn, series_id):
     """
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT MAX(date) FROM fred_observations WHERE series_id = %s",
+            "SELECT MAX(date) FROM raw_dgs30_fred WHERE series_id = %s",
             (series_id,),
         )
         result = cur.fetchone()[0]
@@ -43,7 +43,7 @@ def upsert_observations(conn, series_id, observations):
         ))
 
     sql = """
-        INSERT INTO fred_observations
+        INSERT INTO raw_dgs30_fred
             (series_id, date, value, realtime_start, realtime_end, updated_at)
         VALUES %s
         ON CONFLICT (series_id, date)
