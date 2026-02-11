@@ -1,0 +1,30 @@
+name: FRED ETL - Daily Treasury Rate Update
+
+on:
+  schedule:
+    # Run at 4:00 PM ET (21:00 UTC) on weekdays
+    - cron: '0 21 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  etl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run FRED ETL
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          FRED_SERIES_ID: DGS30
+        run: python -m src.fred_etl.main
