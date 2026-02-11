@@ -9,6 +9,9 @@ on:
 jobs:
   etl:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        series: [DGS30, DGS10, DGS5, DGS2, DGS1, T10Y2Y, DFF]
 
     steps:
       - name: Checkout repository
@@ -22,9 +25,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run FRED ETL
+      - name: Run FRED ETL for ${{ matrix.series }}
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          FRED_SERIES_ID: DGS30
+          FRED_SERIES_ID: ${{ matrix.series }}
         run: python -m src.fred_etl.main
