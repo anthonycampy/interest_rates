@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 from .config import get_config
 from .fred_client import fetch_observations
@@ -9,7 +9,7 @@ def main():
     config = get_config()
     series_id = config["series_id"]
 
-    print(f"[{datetime.now(datetime.timezone.utc).isoformat()}] Starting FRED ETL for {series_id}")
+    print(f"[{datetime.now(timezone.utc).isoformat()}] Starting FRED ETL for {series_id}")
 
     conn = get_connection(config["database_url"])
 
@@ -36,7 +36,7 @@ def main():
     finally:
         conn.close()
 
-    print(f"[{datetime.now(datetime.timezone.utc).isoformat()}] FRED ETL complete")
+    print(f"[{datetime.now(timezone.utc).isoformat()}] FRED ETL complete")
 
 
 if __name__ == "__main__":
