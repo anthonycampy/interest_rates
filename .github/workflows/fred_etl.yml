@@ -2,8 +2,8 @@ name: Daily ETL - Treasury Rates
 
 on:
   schedule:
-    # Run at 4:00 PM ET (21:00 UTC) on weekdays
-    - cron: '0 21 * * 1-5'
+    # Run at 4:30 PM ET (21:30 UTC) on weekdays
+    - cron: '30 21 * * 1-5'
   workflow_dispatch:
 
 jobs:
