@@ -39,6 +39,21 @@ def get_latest_date(conn):
         return cur.fetchone()[0]
 
 
+def get_latest_row(conn):
+    """Get the most recent row from the table as a dict. Returns dict or None."""
+    col_ids = sql.SQL(", ").join(sql.Identifier(c) for c in ALL_COLUMNS)
+    query = sql.SQL("SELECT {columns} FROM {table} ORDER BY date DESC LIMIT 1").format(
+        columns=col_ids,
+        table=sql.Identifier(TABLE_NAME),
+    )
+    with conn.cursor() as cur:
+        cur.execute(query)
+        row = cur.fetchone()
+        if row is None:
+            return None
+        return dict(zip(ALL_COLUMNS, row))
+
+
 def upsert_yield_curve(conn, rows):
     """
     Upsert Treasury yield curve rows.

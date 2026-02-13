@@ -1,8 +1,9 @@
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from .config import get_config
 from .treasury_client import fetch_yield_curve
-from .db import get_connection, get_latest_date, upsert_yield_curve
+from .db import get_connection, get_latest_date, get_latest_row, upsert_yield_curve
 
 
 def main():
@@ -13,7 +14,7 @@ def main():
 
     try:
         latest = get_latest_date(conn)
-        current_year = date.today().year
+        current_year = datetime.now(ZoneInfo("America/New_York")).date().year
 
         if latest:
             print(f"  Incremental mode: latest date in DB is {latest.isoformat()}")
@@ -29,6 +30,17 @@ def main():
 
         count = upsert_yield_curve(conn, rows)
         print(f"  Upserted {count} rows")
+
+        # If no new data for today (e.g. holiday), forward-fill from the latest row
+        today = datetime.now(ZoneInfo("America/New_York")).date()
+        latest_after = get_latest_date(conn)
+        if latest_after and latest_after < today:
+            prev_row = get_latest_row(conn)
+            if prev_row:
+                filled_row = dict(prev_row)
+                filled_row["date"] = today
+                fill_count = upsert_yield_curve(conn, [filled_row])
+                print(f"  No data for {today.isoformat()} (holiday?), forward-filled from {latest_after.isoformat()} ({fill_count} row)")
     finally:
         conn.close()
 
