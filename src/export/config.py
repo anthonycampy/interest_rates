@@ -8,6 +8,8 @@ VIEWS = {
     "dgs5": "v_dgs5",
     "dgs10": "v_dgs10",
     "dgs30": "v_dgs30",
+    "t10y2y": "v_t10y2y",
+    "dff": "v_dff",
 }
 
 
