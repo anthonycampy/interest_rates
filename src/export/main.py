@@ -15,9 +15,10 @@ def export_csv(rows, filepath):
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["date", "value"])
+        writer.writerow(["Date", "Open", "High", "Low", "Close"])
         for row in rows:
-            writer.writerow([row[0].isoformat(), row[1]])
+            val = row[1]
+            writer.writerow([row[0].isoformat(), val, val, val, val])
 
 
 def main():
