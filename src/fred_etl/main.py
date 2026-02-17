@@ -1,8 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime, date, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from .config import get_config
 from .fred_client import fetch_observations
-from .db import get_connection, get_latest_date, upsert_observations
+from .db import get_connection, get_latest_date, get_last_non_null, upsert_observations
 
 
 def main():
@@ -32,6 +33,24 @@ def main():
 
         count = upsert_observations(conn, series_id, observations)
         print(f"  Upserted {count} rows into database")
+
+        # DFF: fill missing calendar days through today (ET)
+        if series_id.upper() == "DFF":
+            last = get_last_non_null(conn, series_id)
+            today = datetime.now(ZoneInfo("America/New_York")).date()
+            if last and last[0] < today:
+                last_date, last_value = last
+                fill_obs = []
+                d = last_date + timedelta(days=1)
+                while d <= today:
+                    fill_obs.append({
+                        "date": d.isoformat(),
+                        "value": str(last_value),
+                    })
+                    d += timedelta(days=1)
+                if fill_obs:
+                    fill_count = upsert_observations(conn, series_id, fill_obs)
+                    print(f"  Forward-filled {fill_count} calendar days through {today.isoformat()}")
 
     finally:
         conn.close()

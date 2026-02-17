@@ -42,6 +42,22 @@ def get_latest_date(conn, series_id):
         return result.isoformat() if result else None
 
 
+def get_last_non_null(conn, series_id):
+    """
+    Get the most recent date and value where value is not NULL.
+    Returns (date, value) or None if no non-null rows exist.
+    """
+    table = _table_name(series_id)
+    query = sql.SQL(
+        "SELECT date, value FROM {} WHERE series_id = %s AND value IS NOT NULL "
+        "ORDER BY date DESC LIMIT 1"
+    ).format(sql.Identifier(table))
+    with conn.cursor() as cur:
+        cur.execute(query, (series_id,))
+        row = cur.fetchone()
+        return row if row else None
+
+
 def upsert_observations(conn, series_id, observations):
     """
     Upsert FRED observations into the database.
