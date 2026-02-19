@@ -18,7 +18,7 @@ def export_csv(rows, filepath):
         writer.writerow(["Date", "Open", "High", "Low", "Close"])
         for row in rows:
             val = row[1]
-            writer.writerow([row[0].isoformat(), val, val, val, val])
+            writer.writerow([row[0].strftime("%-m/%-d/%Y"), val, val, val, val])
 
 
 def main():
