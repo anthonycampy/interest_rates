@@ -2,12 +2,32 @@ name: Daily ETL - Treasury Rates
 
 on:
   schedule:
-    # Run at 4:15 PM ET (21:15 UTC) on weekdays
-    - cron: '15 21 * * 1-5'
+    - cron: '15 20 * * 1-5'  # 4:15 PM EDT (summer)
+    - cron: '15 21 * * 1-5'  # 4:15 PM EST (winter)
   workflow_dispatch:
 
 jobs:
+  tz-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            HOUR=$(TZ=America/New_York date +%H)
+            if [ "$HOUR" = "16" ]; then
+              echo "run=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "run=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
   fred:
+    needs: [tz-gate]
+    if: needs.tz-gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,6 +53,8 @@ jobs:
         run: python -m src.fred_etl.main
 
   treasury:
+    needs: [tz-gate]
+    if: needs.tz-gate.outputs.run == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -53,7 +75,8 @@ jobs:
         run: python -m src.treasury_etl.main
 
   export:
-    needs: [fred, treasury]
+    needs: [tz-gate, fred, treasury]
+    if: needs.tz-gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
